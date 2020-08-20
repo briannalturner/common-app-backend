@@ -1,4 +1,6 @@
 class UsersController < ApplicationController
+    skip_before_action :verify_authenticity_token
+
 
     def index
         users = User.all
@@ -7,31 +9,28 @@ class UsersController < ApplicationController
 
     def show
         user = User.find(params[:id])
-        render json: user, include: [:likees => {:only => [:id]}]
-    end
-
-    def create
-        user = User.new(user_params)
-        user.password = params[:password]
-        if user.valid?
-            user.save
-            render json: user
-        else
-            render json: {message: "invalid user", errors: user.errors}
-        end
-
+        render json: {id: user.id, first_name: user.first_name, last_name: user.last_name, company: user.company, phone: {country_code: user.country_code, phone: user.phone} }     
     end
 
     def update
         user = User.find(params[:id])
         # byebug
         user.update(user_params)
-        render json: user
+        render json: {id: user.id, first_name: user.first_name, last_name: user.last_name, company: user.company, phone: {country_code: user.country_code, phone: user.phone} }     
     end
 
+    def destroy
+
+        user = User.find(params[:id])
+        # byebug
+        user.delete
+
+        render json: {message: 'user deleted'}
+
+    end
 
     private
     def user_params
-        params.require(:user).permit(:first_name, :last_name, :bio, :year, :gender, :orientation, :birthdate, :likes_women, :likes_men, :likes_other, :asexual, :house, :favorite_spell, :image, :username)
+        params.require(:user).permit(:first_name, :last_name, :company, :country_code, :phone)
     end
 end
